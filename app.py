@@ -15,6 +15,25 @@ st.title("📊 시장 + 종목 대시보드")
 NEWS_API_KEY = "여기에_너_API키"
 
 # ---------------------------
+# 🔥 테이블 글씨 크게 (CSS)
+# ---------------------------
+st.markdown("""
+<style>
+[data-testid="stDataFrame"] {
+    font-size: 18px;
+}
+[data-testid="stDataFrame"] thead th {
+    font-size: 20px;
+    font-weight: bold;
+}
+[data-testid="stDataFrame"] tbody td {
+    font-size: 18px;
+    padding: 12px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------------------
 # 티커 설정
 # ---------------------------
 tickers = {
@@ -26,7 +45,8 @@ tickers = {
     "비트코인": "BTC-USD",
     "삼성전자": "005930.KS",
     "SK하이닉스": "000660.KS",
-    "현대차": "005380.KS"
+    "현대차": "005380.KS",
+    "KODEX 200위클리커버드콜": "498400.KS"
 }
 
 # ---------------------------
@@ -66,7 +86,7 @@ def get_data():
 
     df = pd.DataFrame(data)
 
-    # 🔥 포맷 적용 (콤마 + 퍼센트)
+    # 🔥 포맷 적용
     df["현재가"] = df["현재가"].map(lambda x: f"{x:,.2f}")
     df["변동폭"] = df["변동폭"].map(lambda x: f"{x:,.2f}")
     df["변동률"] = df["변동률"].map(lambda x: f"{x:.2f}%")
@@ -90,11 +110,14 @@ def get_news():
         return []
     return []
 
+# ---------------------------
+# 데이터 로드
+# ---------------------------
 df = get_data()
 news = get_news()
 
 # ---------------------------
-# 기준 시간 크게 표시 🔥
+# 기준 시간 크게
 # ---------------------------
 kst = pytz.timezone('Asia/Seoul')
 now = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S")
@@ -102,7 +125,7 @@ now = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S")
 st.markdown(f"## ⏱ 기준 시간: {now}")
 
 # ---------------------------
-# 테이블 출력
+# 테이블
 # ---------------------------
 st.subheader("📈 시장 및 종목 현황")
 st.dataframe(df, use_container_width=True)
