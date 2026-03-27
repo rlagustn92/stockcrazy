@@ -12,7 +12,7 @@ st.set_page_config(page_title="시장 대시보드", layout="wide")
 
 st.title("📊 시장 + 종목 대시보드")
 
-NEWS_API_KEY = "여기에_너_API키"
+NEWS_API_KEY = "17df4ce9e1a74990a4414f4a369876de"
 
 # ---------------------------
 # 🔥 테이블 글씨 크게 (CSS)
@@ -85,15 +85,17 @@ def get_data():
         })
 
     df = pd.DataFrame(data)
-
-    # 🔥 포맷 적용
-    df["현재가"] = df["현재가"].map(lambda x: f"{x:,.2f}")
-    df["변동폭"] = df["변동폭"].map(lambda x: f"{x:,.2f}")
-    df["변동률"] = df["변동률"].map(lambda x: f"{x:.2f}%")
-    df["역대 최고가 대비"] = df["역대 최고가 대비"].map(lambda x: f"{x:.2f}%")
-    df["역대 최고가"] = df["역대 최고가"].map(lambda x: f"{x:,.2f}")
-
     return df
+
+# ---------------------------
+# 🔥 색상 + 굵게 함수
+# ---------------------------
+def color_text(val):
+    if val > 0:
+        return "color: red; font-weight: bold;"
+    elif val < 0:
+        return "color: blue; font-weight: bold;"
+    return ""
 
 # ---------------------------
 # 뉴스
@@ -113,8 +115,34 @@ def get_news():
 # ---------------------------
 # 데이터 로드
 # ---------------------------
-df = get_data()
+df_raw = get_data()
 news = get_news()
+
+# 👉 표시용 복사본 생성
+df_display = df_raw.copy()
+
+# ---------------------------
+# 🔥 포맷 적용 (콤마 + 퍼센트)
+# ---------------------------
+df_display["현재가"] = df_display["현재가"].map(lambda x: f"{x:,.2f}")
+df_display["변동폭"] = df_display["변동폭"].map(lambda x: f"{x:,.2f}")
+df_display["변동률"] = df_display["변동률"].map(lambda x: f"{x:.2f}%")
+df_display["역대 최고가 대비"] = df_display["역대 최고가 대비"].map(lambda x: f"{x:.2f}%")
+df_display["역대 최고가"] = df_display["역대 최고가"].map(lambda x: f"{x:,.2f}")
+
+# ---------------------------
+# 🔥 스타일 적용
+# ---------------------------
+styled_df = df_raw.style.applymap(color_text, subset=["변동폭", "변동률", "역대 최고가 대비"])
+
+# 표시용 포맷 반영
+styled_df = styled_df.format({
+    "현재가": "{:,.2f}",
+    "변동폭": "{:,.2f}",
+    "변동률": "{:.2f}%",
+    "역대 최고가 대비": "{:.2f}%",
+    "역대 최고가": "{:,.2f}"
+})
 
 # ---------------------------
 # 기준 시간 크게
@@ -128,14 +156,16 @@ st.markdown(f"## ⏱ 기준 시간: {now}")
 # 테이블
 # ---------------------------
 st.subheader("📈 시장 및 종목 현황")
-st.dataframe(df, use_container_width=True)
+
+# 🔥 핵심: st.write 써야 스타일 먹는다
+st.write(styled_df)
 
 # ---------------------------
 # 차트
 # ---------------------------
 st.subheader("📉 종목 차트")
 
-selected = st.selectbox("종목 선택", df["항목"])
+selected = st.selectbox("종목 선택", df_raw["항목"])
 symbol = tickers[selected]
 
 chart_data = yf.Ticker(symbol).history(period="3mo")
